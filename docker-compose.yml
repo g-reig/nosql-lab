@@ -1,0 +1,17 @@
+services:
+  mongo:
+    image: mongo:8.0.3
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
+  web:
+    build: .
+    restart: always
+    ports:
+      - 8000:8000
+    environment:
+      DB_USER: root
+      DB_PASSWORD: example
+      DB_HOST: mongo
