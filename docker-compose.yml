@@ -6,8 +6,8 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
 
-  web:
-    build: .
+  backend:
+    build: backend
     restart: always
     ports:
       - 8000:8000
@@ -15,3 +15,13 @@ services:
       DB_USER: root
       DB_PASSWORD: example
       DB_HOST: mongo
+      FRONTEND_URL: http://localhost:8001
+
+  frontend:
+    restart: always
+    build: 
+      context: frontend
+      args:
+        REACT_APP_API_URL: http://localhost:8000
+    ports:
+      - 8001:80
