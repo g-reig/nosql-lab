@@ -24,4 +24,4 @@ services:
       args:
         REACT_APP_API_URL: http://localhost:8000
     ports:
-      - 8001:80
+      - 8001:8001
