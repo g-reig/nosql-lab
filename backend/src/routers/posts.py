@@ -25,9 +25,9 @@ async def create_post(post: Post, current_user: User = Depends(auth.get_current_
 @router.get("/", response_model=List[Post]) # type: ignore
 async def get_posts(current_user: User = Depends(auth.get_current_active_user), original: bool = Query(True, description="Fetch only original posts (without parent)")):
     if original:
-        posts = await database.post_collection.find({"parent": None}).to_list(100)
+        posts = await database.post_collection.find({"parent": None, "private": False}).to_list(100)
     else:
-        posts = await database.post_collection.find().to_list(100)
+        posts = await database.post_collection.find({"private": False}).to_list(100)
     return posts
 
 @router.get("/{post_id}", response_model=PostWithReplies)
@@ -51,9 +51,15 @@ async def get_post(post_id: PyObjectId, current_user: User = Depends(auth.get_cu
 
 @router.post("/{post_id}/reply", response_model=Post)
 async def reply_to_post(post_id: PyObjectId, reply: Post, current_user: User = Depends(auth.get_current_active_user)):
+    original_post = await database.post_collection.find_one({"_id": post_id})
+    if not original_post:
+        return HTTPException(status_code=404, detail="Post not found")
+    if original_post.private and current_user.id != original_post.user_id:
+        return HTTPException(status_code=404, detail="Post not found")
     reply.user_id = current_user.id
     reply.username = current_user.username
     reply.parent = post_id
+    reply.private = original_post.private
     reply_data = reply.model_dump()
     reply_data.pop("replies")
     result = await database.post_collection.insert_one(reply_data)
@@ -65,3 +71,11 @@ async def reply_to_post(post_id: PyObjectId, reply: Post, current_user: User = D
     
     reply.id = result.inserted_id
     return reply
+
+@router.post("/search", response_model=List[Post])
+async def search(query: dict, current_user: User = Depends(auth.get_current_active_user)):
+    if "private" not in query or query.get("private") == True:
+        query["private"] = False
+    search_result = await database.post_collection.find(query).to_list(100)
+    return search_result
+

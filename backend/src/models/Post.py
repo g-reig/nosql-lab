@@ -11,6 +11,7 @@ class Post(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.now)
     replies: List[PyObjectId] = []
     parent: Optional[PyObjectId] = Field(default=None)
+    private: Optional[bool] = Field(default=False)
 
     class Config:
         populate_by_name = True

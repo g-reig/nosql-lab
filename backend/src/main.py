@@ -32,9 +32,10 @@ def read_root():
 @app.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = await database.get_user_by_username(form_data.username)
-    if not user:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
-    if not auth.verify_password(form_data.password, user.password):
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
+    if not user or not auth.verify_password(form_data.password, user.password) or user.incorrect_attempts >= 100:
+        database.user_collection.update_one({"_id":user.id}, {"$set": {"incorrect_attempts":user.incorrect_attempts+1}})
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
+    else:
+        database.user_collection.update_one({"_id":user.id}, {"$set": {"incorrect_attempts":0}})
     access_token = auth.create_access_token(data={"sub": user.username})
     return {"access_token": access_token, "token_type": "bearer"}

@@ -6,12 +6,13 @@ const Feed = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [newPostContent, setNewPostContent] = useState(""); // State for new post content
-  const [user, setUser] = useState(null); // State to store logged-in user data
+  const [newPostContent, setNewPostContent] = useState("");
+  const [isPrivate, setIsPrivate] = useState(false); // State for private post checkbox
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
   const token = localStorage.getItem("access_token");
-  const API_URL = process.env.REACT_APP_API_URL; // Access API URL from environment variable
+  const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -29,11 +30,7 @@ const Feed = () => {
         }
 
         const postsData = await response.json();
-        if (Array.isArray(postsData)) {
-          setPosts(postsData);
-        } else {
-          throw new Error("Response is not an array");
-        }
+        setPosts(postsData);
       } catch (error) {
         setError(error.message);
       } finally {
@@ -66,11 +63,10 @@ const Feed = () => {
       fetchPosts();
       fetchUser();
     } else {
-      navigate("/login");  // Redirect to login if no token is present
+      navigate("/login");
     }
   }, [token, navigate, API_URL]);
 
-  // Handle new post submission
   const handleNewPostSubmit = async (e) => {
     e.preventDefault();
     if (!newPostContent.trim()) {
@@ -85,7 +81,7 @@ const Feed = () => {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify({ content: newPostContent }),
+        body: JSON.stringify({ content: newPostContent, private: isPrivate }),
       });
 
       if (!response.ok) {
@@ -93,17 +89,17 @@ const Feed = () => {
       }
 
       const newPost = await response.json();
-      setPosts((prevPosts) => [newPost, ...prevPosts]); // Add the new post at the beginning of the list
-      setNewPostContent(""); // Clear the input field
+      setPosts((prevPosts) => [newPost, ...prevPosts]);
+      setNewPostContent("");
+      setIsPrivate(false);
     } catch (error) {
       setError("Error creating post");
     }
   };
 
-  // Handle logout functionality
   const handleLogout = () => {
-    localStorage.removeItem("access_token"); // Remove the token from localStorage
-    navigate("/");  // Redirect to the main page (or login page)
+    localStorage.removeItem("access_token");
+    navigate("/");
   };
 
   if (loading) return <p>Loading posts...</p>;
@@ -111,11 +107,14 @@ const Feed = () => {
 
   return (
     <div>
-      {/* Header with user name and logout button */}
-      <header className="feed-header">
+      {/* Header with user name and buttons */}
+      <header className="post-header">
         <div className="header-content">
           {user && <p>Welcome, {user.username}!</p>}
-          <button onClick={handleLogout}>Log Out</button>
+          <div className="header-buttons">
+            <button onClick={() => navigate("/search")}>Search</button>
+            <button onClick={handleLogout}>Log Out</button>
+          </div>
         </div>
       </header>
 
@@ -127,6 +126,16 @@ const Feed = () => {
           placeholder="What's on your mind?"
           required
         />
+        <div className="private-checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={isPrivate}
+              onChange={() => setIsPrivate(!isPrivate)}
+            />
+            Private
+          </label>
+        </div>
         <button type="submit">Create Post</button>
       </form>
 

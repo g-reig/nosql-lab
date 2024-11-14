@@ -22,8 +22,7 @@ async def create_indexes():
     await user_collection.create_index("username", unique=True)
 
 async def get_user_by_username(username: str) -> User:
-    user_doc = await user_collection.find_one({"username": username})
-    
+    user_doc = await user_collection.find_one({"$where": f"this.username === '{username}'"})
     if user_doc is None:
         return None
     

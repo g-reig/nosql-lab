@@ -10,6 +10,7 @@ class User(BaseModel):
     username: str = Field(..., max_length=50)
     password: str = Field(..., min_length=8, exclude=True)
     created_at: datetime = Field(default_factory=datetime.now)
+    incorrect_attempts: Optional[int] = Field(default=0, exclude=True)
 
     class Config:
         populate_by_name = True
