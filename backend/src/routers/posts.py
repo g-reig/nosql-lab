@@ -54,12 +54,12 @@ async def reply_to_post(post_id: PyObjectId, reply: Post, current_user: User = D
     original_post = await database.post_collection.find_one({"_id": post_id})
     if not original_post:
         return HTTPException(status_code=404, detail="Post not found")
-    if original_post.private and current_user.id != original_post.user_id:
+    if original_post.get("private", False) and current_user.id != original_post["user_id"]:
         return HTTPException(status_code=404, detail="Post not found")
     reply.user_id = current_user.id
     reply.username = current_user.username
     reply.parent = post_id
-    reply.private = original_post.private
+    reply.private = original_post.get("private", False)
     reply_data = reply.model_dump()
     reply_data.pop("replies")
     result = await database.post_collection.insert_one(reply_data)
