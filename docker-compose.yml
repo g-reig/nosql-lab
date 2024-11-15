@@ -18,6 +18,8 @@ services:
       DB_PASSWORD: example
       DB_HOST: mongo
       FRONTEND_URL: http://localhost:8001
+      SECRET_KEY: 09d25e094faa6ca2552c818166b7a9563b93fa199f6f0f4caa6cf53b88e8d3e7
+      ADMIN_PASSWORD: cardinal
 
   frontend:
     restart: always

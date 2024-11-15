@@ -9,6 +9,7 @@ import os
 async def lifespan(app):
     # Create indexes on app startup
     await database.create_indexes()
+    await database.populate_db()
     yield
 
 app = FastAPI(lifespan=lifespan)
