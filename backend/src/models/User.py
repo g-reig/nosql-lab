@@ -19,3 +19,8 @@ class User(BaseModel):
 
 class UserWithPosts(User):
     posts: List[Post] = []
+
+class UserRequest(BaseModel):
+    username: str = Field(..., max_length=50)
+    password: str = Field(..., min_length=8, exclude=True)
+

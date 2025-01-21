@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from models.User import User, UserWithPosts
+from models.User import User, UserWithPosts, UserRequest
 import common.database as database
 import common.auth as auth
 from models.PyObjectId import PyObjectId
@@ -9,7 +9,7 @@ router = APIRouter(
 )
 
 @router.post("/", response_model=User)
-async def create_user(user: User):
+async def create_user(user: UserRequest):
     hashed_password = auth.get_password_hash(user.password)
     new_user = {"username": user.username, "password": hashed_password}
     inserted_user = await database.user_collection.insert_one(new_user)

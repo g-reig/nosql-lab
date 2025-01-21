@@ -18,6 +18,5 @@ class Post(BaseModel):
         arbitrary_types_allowed = True
         json_encoders = {PyObjectId: str}
 
-
 class PostWithReplies(Post):
     replies: List[Post] = []  # This will allow replies to be full Post objects, not just ObjectId
